@@ -5,6 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/joho/godotenv"
 	"os"
+	"sync"
 
 	"log"
 	"net/http"
@@ -13,8 +14,9 @@ import (
 )
 
 // ギークスの案件最新10件を取得
-func getGeechsLatestInfos() []string {
-	res, err := http.Get("https://geechs-job.com/project")
+func getGeechsLatestInfos(url string, resultChan chan []string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	res, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,7 +37,8 @@ func getGeechsLatestInfos() []string {
 		latestInfos = append(latestInfos, s.Text())
 	})
 
-	return latestInfos
+	resultChan <- latestInfos
+	return
 }
 
 // Gmailでギークスの案件情報をメール送信
@@ -51,7 +54,7 @@ func sendGmail(latestInfos []string) {
 	// メールの内容
 	receiver := os.Getenv("GMAIL_ADDRESS")
 	subject := "Geechs Jobの最新案件情報です\n"
-	body := fmt.Sprintf("geechs jobの最新案件10件です。\n%s", strings.Join(latestInfos, "\n"))
+	body := fmt.Sprintf("geechs jobの最新案件%d件です。\n%s", len(latestInfos), strings.Join(latestInfos, "\n"))
 
 	message := []byte(subject + "\n" + body)
 
@@ -73,6 +76,20 @@ func loadEnv() {
 
 func main() {
 	loadEnv()
-	latestInfos := getGeechsLatestInfos()
+	var wg sync.WaitGroup
+	resultChan := make(chan []string, 3)
+	wg.Add(3)
+	go getGeechsLatestInfos("https://geechs-job.com/project", resultChan, &wg)
+	go getGeechsLatestInfos("https://geechs-job.com/project?page=2", resultChan, &wg)
+	go getGeechsLatestInfos("https://geechs-job.com/project?page=3", resultChan, &wg)
+
+	wg.Wait()
+	close(resultChan)
+
+	latestInfos := []string{}
+	for result := range resultChan {
+		latestInfos = append(latestInfos, result...)
+	}
+
 	sendGmail(latestInfos)
 }
