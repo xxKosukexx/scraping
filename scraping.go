@@ -13,8 +13,8 @@ import (
 	"strings"
 )
 
-// ギークスの案件最新10件を取得
-func getGeechsLatestInfos(url string, resultChan chan []string, wg *sync.WaitGroup) {
+// 日経新聞の最新10件を取得
+func getNikkeiLatestInfos(url string, resultChan chan []string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	res, err := http.Get(url)
 	if err != nil {
@@ -79,9 +79,9 @@ func main() {
 	var wg sync.WaitGroup
 	resultChan := make(chan []string, 3)
 	wg.Add(3)
-	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/", resultChan, &wg)
-	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/?page=2", resultChan, &wg)
-	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/?page=3", resultChan, &wg)
+	go getNikkeiLatestInfos("https://www.nikkei.com/economy/economy/", resultChan, &wg)
+	go getNikkeiLatestInfos("https://www.nikkei.com/economy/economy/?page=2", resultChan, &wg)
+	go getNikkeiLatestInfos("https://www.nikkei.com/economy/economy/?page=3", resultChan, &wg)
 
 	wg.Wait()
 	close(resultChan)
