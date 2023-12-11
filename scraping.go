@@ -41,7 +41,7 @@ func getNikkeiLatestInfos(url string, resultChan chan []string, wg *sync.WaitGro
 	return
 }
 
-// Gmailでギークスの案件情報をメール送信
+// Gmailで日経新聞の情報をメール送信
 func sendGmail(latestInfos []string) {
 	// SMTPサーバーの設定
 	smtpHost := os.Getenv("SMTP_HOST")
