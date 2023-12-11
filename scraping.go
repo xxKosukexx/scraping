@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-// 日経新聞の最新10件を取得
+// 日経新聞の最新情報を取得
 func getNikkeiLatestInfos(url string, resultChan chan []string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	res, err := http.Get(url)
