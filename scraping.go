@@ -33,7 +33,7 @@ func getGeechsLatestInfos(url string, resultChan chan []string, wg *sync.WaitGro
 
 	// ドキュメント内の特定の要素を抽出
 	latestInfos := []string{}
-	doc.Find(".c-card_title_link").Each(func(i int, s *goquery.Selection) {
+	doc.Find("[class*=fauxBlockLink]").Each(func(i int, s *goquery.Selection) {
 		latestInfos = append(latestInfos, s.Text())
 	})
 
@@ -53,8 +53,8 @@ func sendGmail(latestInfos []string) {
 
 	// メールの内容
 	receiver := os.Getenv("GMAIL_ADDRESS")
-	subject := "Geechs Jobの最新案件情報です\n"
-	body := fmt.Sprintf("geechs jobの最新案件%d件です。\n%s", len(latestInfos), strings.Join(latestInfos, "\n"))
+	subject := "日本経済新聞の最新情報です\n"
+	body := fmt.Sprintf("日本経済新聞の最新%d件です。\n\n%s", len(latestInfos), strings.Join(latestInfos, "\n\n"))
 
 	message := []byte(subject + "\n" + body)
 
@@ -79,9 +79,9 @@ func main() {
 	var wg sync.WaitGroup
 	resultChan := make(chan []string, 3)
 	wg.Add(3)
-	go getGeechsLatestInfos("https://geechs-job.com/project", resultChan, &wg)
-	go getGeechsLatestInfos("https://geechs-job.com/project?page=2", resultChan, &wg)
-	go getGeechsLatestInfos("https://geechs-job.com/project?page=3", resultChan, &wg)
+	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/", resultChan, &wg)
+	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/?page=2", resultChan, &wg)
+	go getGeechsLatestInfos("https://www.nikkei.com/economy/economy/?page=3", resultChan, &wg)
 
 	wg.Wait()
 	close(resultChan)
